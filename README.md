@@ -1,0 +1,1 @@
+This repository is currently unpolished, mostly intended to back up some of my pad related code, primarily the pad data parser (reformatter.py).
