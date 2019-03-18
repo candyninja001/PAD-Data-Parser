@@ -1,102 +1,36 @@
-# This module impliments datastructures used for
-# elements of the game, such as boards and cards
+import json
 
-from enum import IntEnum
+CARD_PATH = 'reformatted/cards.json'
+ENEMY_SKILL_PATH = 'reformatted/enemy_skills.json'
 
-class Attribute(IntEnum):
-    FIRE = 0
-    WATER = 1
-    WOOD = 2
-    LIGHT = 3
-    DARK = 4
+CARD_DATA = json.load(open(CARD_PATH))
+ENEMY_SKILL_DATA = json.load(open(ENEMY_SKILL_PATH))
 
-class OrbType(IntEnum):
-    FIRE = 0
-    WATER = 1
-    WOOD = 2
-    LIGHT = 3
-    DARK = 4
-    HEART = 5
-    JAMMER = 6
-    POISON = 7
-    MORTAL = 8
-    BOMB = 9
+def get_curved_value(min_y, max_y, curve, max_x, x):
+    return min_y + (max_y - min_y) * ((x - 1) / (max_x - 1)) ** curve
 
-    def get_spin_orb(self):
-        OrbType((min(self, 5) + 1) % 6)
+class Enemy:
+    def __init__(self, monster_id, level):
+        if str(monster_id) not in CARD_DATA['enemies']:
+            raise ValueError('Invalid enemy monster id')
+        if type(level) != int or level < 1 or level > 99:
+            raise ValueError('Invalid enemy level')
+        self._id = monster_id
+        self._level = level
 
-class Orb():
-    BLIND = 0
-    SUPER_BLIND = 1
-    def __init__(self, att=None, enhance=False, lock=False, blind=None):
-        self.att = att
-        self.enhance = enhance
-        self.lock = lock
-        self.blind = blind
-
-    def __setatt__(self, name, value):
-        if name == 'att':
-            if type(value) not in {OrbType, None}:
-                raise ValueError('Orb.att must be OrbType or None')
-        elif name == 'enhance':
-            if type(value) not in {bool}:
-                raise ValueError('Orb.enhance must be bool')
-        elif name == 'lock':
-            if type(value) not in {bool}:
-                raise ValueError('Orb.lock must be bool')
-        elif name == 'blind':
-            if type(value) not in {Orb.BLIND, Orb.SUPER_BLIND, None}:
-                raise ValueError('Orb.blind must be Orb.BLIND, Orb.SUPERBLIND or None')
-        else:
-            raise AttributeError(f'{name} is not an attribute of Orb')
-        object.__setattr__(self, name, value)
-        if self.enhance and self.att != None and self.att > int(OrbType.HEART):
-            self.enhance = False
-
-    def spin(self) -> bool:
-        if self.lock:
-            return False
-        if self.att != None:
-            self.att = get_spin_orb)
-        return True
+    def __getattr__(self, name):
+        enemy_data = CARD_DATA['enemies'][str(self._id)]
+        if name == 'hp':
+            return get_curved_value(enemy_data['hp_at_lv_1'], enemy_data['hp_at_lv_10'], 1, 10, self._level)
+        if name == 'defense':
+            return get_curved_value(enemy_data['def_at_lv_1'], enemy_data['def_at_lv_10'], 1, 10, self._level)
+        if name == 'atk' or name == 'attack':
+            return get_curved_value(enemy_data['atk_at_lv_1'], enemy_data['atk_at_lv_10'], 1, 10, self._level)
+        if name == 'coins':
+            return enemy_data['coins_at_lv_2'] * self._level / 2
+        if name == 'exp' or name == 'experience':
+            return enemy_data['experience_at_lv_2'] * self._level / 2
+        if name == 'default_turn_timer':
+            return enemy_data['turn_timer']
+        raise AttributeError
         
-
-class StrictBoardSelection(): # exclusive to 6x5 or 7x6
-    def __init__(self, points=None, size=30):
-        self.points = []
-
-class AdjustableBoardSelection(): # adjusts 6x5 selection to 7x6
-    def __init__(self, points=None):
-        self.points = []
-
-class BoardColumn(AdjustableBoardSelection):
-    def __init__(self, index):
-        super().__init__(self)
-
-class BoardRow(AdjustableBoardSelection):
-    pass
-
-class Board():
-    width = 6
-    height = 5
-    def __init__(self, inital=None, size='6x5'):
-        if inital != None:
-            if len(initial) == 42:
-                self.width = 7
-                self.height = 6
-            elif len(intial) == 30:
-                self.width = 6
-                self.height = 5
-        else:
-            if size == '7x6' or size == '76' or str(size) == '42':
-                self.width = 7
-                self.height = 6
-            else:
-                self.width = 6
-                self.height = 5
-            for x in range(self.width):
-                for y in range(self.height):
-                    
-
-    def __getitem__(self, index):
-        return orbs
